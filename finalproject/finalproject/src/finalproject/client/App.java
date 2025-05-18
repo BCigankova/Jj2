@@ -6,19 +6,16 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.*;
-import java.net.Socket;
-
+//funguje i bez serveru?????
 public class App extends Application {
     private PosilacNaServer pns;
-
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        pns = new PosilacNaServer("127.0.0.0", 1234);
+        pns = new PosilacNaServer("127.0.0.1", 4321);
 
         FXMLLoader loader = new FXMLLoader(App.class.getResource("/MainWindow.fxml"));
         Parent root = loader.load();
@@ -26,6 +23,7 @@ public class App extends Application {
         AppController controller = loader.getController();
         controller.setPrimaryStage(primaryStage);
         controller.setPns(pns);
+        controller.connectToServer();
 
         primaryStage.setTitle("Party");
         primaryStage.setScene(new Scene(root, 1000, 1000));
