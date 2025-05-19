@@ -1,18 +1,20 @@
-package finalproject.database;
+package finalproject.shared;
 
-public class Item {
+import java.io.Serializable;
+
+public class Item implements Serializable {
     private final int id;
     private String owner;
     private String name;
-    private String pic_url;
+    private byte[] pic;
     private int price;
     private String description;
 
-    public Item(int id, String owner, String name, String pic_url, int price, String description) {
+    public Item(int id, String owner, String name, byte[] pic, int price, String description) {
         this.id = id;
         this.owner = owner;
         this.name = name;
-        this.pic_url = pic_url;
+        this.pic = pic;
         this.price = price;
         this.description = description;
     }
@@ -38,14 +40,6 @@ public class Item {
         this.name = name;
     }
 
-    public String getPic_url() {
-        return pic_url;
-    }
-
-    public void setPic_url(String pic_url) {
-        this.pic_url = pic_url;
-    }
-
     public int getPrice() {
         return price;
     }
@@ -61,8 +55,16 @@ public class Item {
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     public String toString() {
-        return "id: " + id + " owner: " + owner + " name: " + name + " pic_url: " + pic_url + " price: " + price + " description: " + description;
+        return "id: " + id + " owner: " + owner + " name: " + name + " price: " + price + " description: " + description;
+    }
+
+    public byte[] getPic() {
+        return pic;
+    }
+
+    public void setPic(byte[] pic) {
+        this.pic = pic;
     }
 }

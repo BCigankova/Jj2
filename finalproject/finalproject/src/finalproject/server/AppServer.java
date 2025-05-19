@@ -11,7 +11,9 @@ import java.sql.SQLException;
 
 public class AppServer {
 
-//observer na clientovi, jestli server neco neposlal, ne timeline
+    //TODO: nejak poresit stopserver a socket
+
+    //observer na clientovi, jestli server neco neposlal, ne timeline
     //nechat stav obrazovek a jen zneviditelnit?
     private static boolean stopServer = false;
     private static final String DBNAME = "AppDB";
@@ -38,7 +40,7 @@ public class AppServer {
 
 
     private static class ServerThread extends Thread {
-        private Socket clientSocket;
+        private final Socket clientSocket;
         private Database db;
 
         public ServerThread(Socket clientSocket, Database db) {
@@ -47,18 +49,13 @@ public class AppServer {
         }
 
         public void run() {
-            try (BufferedReader rd = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                 BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
-                DelacVeci dv = new DelacVeci(db);
-                String line;
-                while ((line = rd.readLine()) != null) {
-                    String response = dv.processRequest(line);
-                    wr.write(response);
-                    wr.newLine();
-                    wr.flush();
-                }
+            try (ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+                 ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
+                DelacVeci dv = new DelacVeci(ois, oos, db);
+                dv.handleRequests();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
+                //co ted?
             } finally {
                 try {
                     clientSocket.close();

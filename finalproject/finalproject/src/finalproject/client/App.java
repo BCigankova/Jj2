@@ -6,7 +6,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-//funguje i bez serveru?????
 public class App extends Application {
     private PosilacNaServer pns;
     public static void main(String[] args) {
@@ -17,15 +16,13 @@ public class App extends Application {
     public void start(Stage primaryStage) throws Exception {
         pns = new PosilacNaServer("127.0.0.1", 4321);
 
-        FXMLLoader loader = new FXMLLoader(App.class.getResource("/MainWindow.fxml"));
-        Parent root = loader.load();
-
-        AppController controller = loader.getController();
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("/LoginWindow.fxml"));
+        LoginController controller = loader.getController();
         controller.setPrimaryStage(primaryStage);
         controller.setPns(pns);
-        controller.connectToServer();
+        Parent root = loader.load();
 
-        primaryStage.setTitle("Party");
+        primaryStage.setTitle("App");
         primaryStage.setScene(new Scene(root, 1000, 1000));
         primaryStage.show();
     }
@@ -33,6 +30,16 @@ public class App extends Application {
 
     //nejaky exit kdyz zmacknu exit
 }
+
+    /*
+    TODO:   xml
+                dodelat metody pns pro itemy, pak dv a db statementy nove
+            password hashing
+            logika client
+            vykreslovani client
+            vsude pohandlovat exceptiony (SQLWrapper + aby to vyhodilo nejaky alert a nespadlo)
+            pridat account policko u signupu a moznost zmenit account a password v db a obecne
+     */
 
 
 /*

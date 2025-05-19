@@ -1,16 +1,19 @@
 package finalproject.client;
 
-import finalproject.database.User;
+import finalproject.shared.Item;
+import finalproject.shared.Message;
+import finalproject.shared.Methods;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class PosilacNaServer {
     private Socket socket;
     private String ip;
     private int port;
-    private BufferedWriter writer;
-    private BufferedReader reader;
+    private ObjectInputStream inStream;
+    private ObjectOutput outStream;
 
     public PosilacNaServer(String ip, int port) throws IOException {
         this.ip = ip;
@@ -18,36 +21,63 @@ public class PosilacNaServer {
     }
 
     public void connectToServer() {
-        try {Socket s = new Socket(ip, port);
-             InputStream inpStream = s.getInputStream();
-             OutputStream outStream = s.getOutputStream();
-             BufferedReader in = new BufferedReader(new InputStreamReader(inpStream));
-             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(outStream));
+        try {
+            Socket s = new Socket(ip, port);
+            ObjectInputStream ois = new ObjectInputStream(s.getInputStream());
+            ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
             socket = s;
-            writer = out;
-            reader = in;
+            inStream = ois;
+            outStream = oos;
         } catch (IOException e) {
             throw new RuntimeException("Unable to connect to server", e);
         }
     }
-    public void login(String a, String b) {}
+    public String login(String username, String password) {
+        try {
+            Message r = new Message(Methods.LOGIN, new ArrayList<>(), new String[]{username, password});
+            outStream.writeObject(r);
+            outStream.flush();
+            Message res = (Message) inStream.readObject();
+            return res.getmethod().toString();
+        }
+        catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Unable to login", e);
+        }
+    }
 
     public String signup(String username, String password) {
         try {
-            writer.write(Requests.SIGNUP + " " + username + " " + password + "\n");
-            writer.flush();
-            String response = reader.readLine();    //dodelat
-            return "OK";
+            Message r = new Message(Methods.SIGNUP, new ArrayList<>(), new String[]{username, password});
+            outStream.writeObject(r);
+            outStream.flush();
+            Message res = (Message) inStream.readObject();
+            return res.getmethod().toString();
         }
-        catch (IOException e) {
-            throw new RuntimeException("Unable to signup", e);      //predelat na vraceni erroru clientu
+        catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Unable to signup", e);
         }
+    }
+
+    public ArrayList<Item> getMyItems(String username) {
+        ArrayList<Item> items = new ArrayList<>();
+    }
+
+    public ArrayList<Item> getBuyItems(String username) {
+
+    }
+
+    public void deleteItem(int itemId) {
+
+    }
+
+    public void buyItem(String username, int itemId) {
+
     }
 
     public void close() {
         try {
-            if (writer != null) writer.close();
-            if (reader != null) reader.close();
+            if (inStream != null) inStream.close();
+            if (outStream != null) outStream.close();
             if (socket != null && !socket.isClosed()) socket.close();
         } catch (IOException e) {
             e.printStackTrace();
