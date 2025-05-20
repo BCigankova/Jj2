@@ -34,16 +34,13 @@ public class App extends Application {
 }
 
     /*
-    TODO:   xml
-            loadovani hned po pridani
-            load myItems vs buyItems
-            delete itemy jen jeden xd
-            dodelat delete a buy v MainController
+    TODO:   xml reader
+            error pay here
             thread na fxml gui front/background tasks
             password hashing
-            vsude pohandlovat exceptiony (SQLWrapper + aby to vyhodilo nejaky alert a nespadlo)
             moznost zmenit account a password v db a obecne
             listener na delete/buy?
+            sjednotit nazvy myItems/buyItems
      */
 
 

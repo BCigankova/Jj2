@@ -36,143 +36,84 @@ public class Database implements AutoCloseable {
             getItemById = con.prepareStatement("SELECT * FROM items WHERE id = ?");
             getItemsForUser = con.prepareStatement("SELECT * FROM items WHERE owner = ?");
             getItemsForNotUser = con.prepareStatement("SELECT * FROM items WHERE owner != ?");
-            addItemToUser = con.prepareStatement("INSERT INTO items (name, owner, pic_url, price, description) VALUES (?, ?, ?, ?, ?)");
+            addItemToUser = con.prepareStatement("INSERT INTO items (owner, name, pic_url, price, description) VALUES (?, ?, ?, ?, ?)");
             deleteItemById = con.prepareStatement("DELETE FROM items WHERE id = ?");
         } catch (SQLException e) {
             throw new RuntimeException("Unable to initialize prepared statements", e); //lepsi exception s textem
         }
     }
 
-    public User getUserByName(String name) {
+    public User getUserByName(String name) throws SQLException {
         User user = null;
-        try {
-            getUserByName.setString(1, name);
-            try (ResultSet results = getUserByName.executeQuery()) {
-                if(results.next()) {
-                    user = new User(results.getString(1), results.getBytes(2), results.getString(3));
-                    System.out.println(user.toString());
-                    return user;
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException("User doesnt exist", e);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error getting user", e);
-        }
+        getUserByName.setString(1, name);
+        ResultSet results = getUserByName.executeQuery();
+        if(results.next())
+            user = new User(results.getString(1), results.getBytes(2), results.getString(3));
         return user;
     }
 
-    public String addUser(User user) {
-        try {
+    public void addUser(User user) throws SQLException {
             addUser.setString(1, user.getUsername());
             addUser.setBytes(2, user.getPassword());
             addUser.setString(3, user.getAccount());
             addUser.executeUpdate();
-            return "OK";
-        } catch (SQLException e) {
-            return "Username taken";
-        }
     }
 
-    public void updatePassword(User user) {
-        try {
+    public void updatePassword(User user) throws SQLException {
             updatePassword.setBytes(1, user.getPassword());
             updatePassword.setString(2, user.getUsername());
             updatePassword.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Unable to update password", e);
-        }
     }
 
-    public void deleteUser(User user) {
-        try {
+    public void deleteUser(User user) throws SQLException {
             deleteUser.setString(1, user.getUsername());
             deleteUser.executeUpdate();
-        }
-        catch (SQLException e) {
-            throw new RuntimeException("Unable to delete user", e);
-        }
     }
 
-    public DBItem getItemById(int id) {
+    public DBItem getItemById(int id) throws SQLException {
         DBItem i = null;
-        try {
-            getItemById.setInt(1, id);
-            try(ResultSet rs = getItemById.executeQuery()) {
-                if (rs.next())
-                    i = new DBItem(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getString(6));
-            }
-            catch (SQLException e) {
-                throw new RuntimeException("unable to get item by id", e);
-            }
-        }
-        catch (SQLException e) {
-            throw new RuntimeException("unable to get item by id", e);
-        }
+        getItemById.setInt(1, id);
+        ResultSet rs = getItemById.executeQuery();
+        if (rs.next())
+            i = new DBItem(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getString(6));
         return i;
     }
 
-    public List<DBItem> getItemsForUser(String username) {
+    public List<DBItem> getItemsForUser(String username) throws SQLException {
         List<DBItem> DBItems = new ArrayList<>();
-        try {
-            getItemsForUser.setString(1, username);
-            try (ResultSet rs = getItemsForUser.executeQuery()) {
-                while (rs.next()) {
-                    DBItems.add(new DBItem(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getString(6)));
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException("unable to get items", e);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("unable to get items", e);
-        }
+        getItemsForUser.setString(1, username);
+        ResultSet rs = getItemsForUser.executeQuery();
+        while (rs.next())
+            DBItems.add(new DBItem(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getString(6)));
         return DBItems;
     }
 
-    public List<DBItem> getItemsForNotUser(String username) {
+    public List<DBItem> getItemsForNotUser(String username) throws SQLException {
         List<DBItem> DBItems = new ArrayList<>();
-        try {
-            getItemsForNotUser.setString(1, username);
-            try (ResultSet rs = getItemsForNotUser.executeQuery()) {
-                while (rs.next()) {
-                    DBItems.add(new DBItem(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getString(6)));
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException("unable to get items", e);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("unable to get items", e);
-        }
+        getItemsForNotUser.setString(1, username);
+        ResultSet rs = getItemsForNotUser.executeQuery();
+        while (rs.next())
+            DBItems.add(new DBItem(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getString(6)));
         return DBItems;
     }
 
-    public void addItemToUser(String name, String username, String pic_url, int price, String description) {
-        try {
-            addItemToUser.setString(1, name);
-            addItemToUser.setString(2, username);
-            addItemToUser.setString(3, pic_url);
-            addItemToUser.setInt(4, price);
-            addItemToUser.setString(5, description);
-            addItemToUser.executeUpdate();
-        }
-        catch (SQLException e) {
-            throw new RuntimeException("unable to add item to user", e);
-        }
+    public void addItemToUser(String name, String username, String pic_url, int price, String description) throws SQLException {
+        addItemToUser.setString(1, name);
+        addItemToUser.setString(2, username);
+        addItemToUser.setString(3, pic_url);
+        addItemToUser.setInt(4, price);
+        addItemToUser.setString(5, description);
+        addItemToUser.executeUpdate();
     }
 
-    public void deleteItemById(int id) {
-        try {
-            deleteItemById.setInt(1, id);
-        }
-        catch (SQLException e) {
-            throw new RuntimeException("unable to delete item by id", e);
-        }
+    public void deleteItemById(int id) throws SQLException {
+        deleteItemById.setInt(1, id);
+        deleteItemById.executeUpdate();
     }
 
 
     @Override
     public void close() {
-
         try {
             getUserByName.close();
             addUser.close();

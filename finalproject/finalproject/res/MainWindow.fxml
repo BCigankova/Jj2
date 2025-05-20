@@ -19,6 +19,7 @@
                 <Label text="Your Items" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
                 <Button text="Add item" onAction="#onAddItemAction"/>
                 <Button text="Export to XML" onAction="#onExportAction"/>
+                <Button text="Import from XML" onAction="#onImportAction"/>
                 <ScrollPane fitToWidth="true">
                     <TilePane fx:id="userItemGrid" hgap="20.0" vgap="20.0" prefColumns="3" style="-fx-padding: 15 15 15 15;"/>
                 </ScrollPane>

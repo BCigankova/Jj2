@@ -15,7 +15,6 @@ public class AddItemPopupController {
     @FXML private TextField titleField;
     @FXML private TextField descField;
     @FXML private TextField priceField;
-    @FXML private Label imageLabel;
 
     private File selectedImage;
     private String name;
@@ -23,18 +22,10 @@ public class AddItemPopupController {
     private int price;
     private byte[] image;
 
-
-
     @FXML
     private void onChooseImageAction(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("*.png", "*.jpg", "*.jpeg"));
         selectedImage = fileChooser.showOpenDialog(null);
-        /*
-        if (selectedImage != null) {
-            imageLabel.setText(selectedImage.getName());
-        }
-         */
     }
 
     @FXML
@@ -51,7 +42,6 @@ public class AddItemPopupController {
             price = Integer.parseInt(priceField.getText());
             ((Stage) titleField.getScene().getWindow()).close();
         } catch (IOException e) {
-            e.printStackTrace();
             showAlert("Failed to read image file.");
         }
     }

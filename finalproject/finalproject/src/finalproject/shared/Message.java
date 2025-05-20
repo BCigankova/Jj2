@@ -40,6 +40,6 @@ public class Message implements Serializable {
     }
 
     public String toString() {
-        return method.toString() + " " + (items == null ? "null" : items.toString()) + " " + Arrays.toString(data);
+        return method.toString() + " " + (items == null ? "null" : items.toString()) + " " + (data == null ? "null" : Arrays.toString(data));
     }
 }

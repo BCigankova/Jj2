@@ -24,7 +24,7 @@ public class PosilacNaServer {
         try {
             Socket s = new Socket(ip, port);
             ObjectOutputStream outStream = new ObjectOutputStream(s.getOutputStream());
-            outStream.flush();
+            //outStream.flush();
             ObjectInputStream inStream = new ObjectInputStream(s.getInputStream());
             System.out.println("Connecting to " + ip + ":" + port);
             socket = s;
@@ -37,7 +37,6 @@ public class PosilacNaServer {
 
     private void sendMessage(Methods method, ArrayList<Item> items, String[] data) {
         Message res = new Message(method, items, data);
-        //System.out.println(res);
         try {
             System.out.println(res);
             oos.writeObject(res);
@@ -48,23 +47,16 @@ public class PosilacNaServer {
         }
     }
 
-    public void clearStream() throws IOException {
-//        if (ois != null)
-//            ois.reset();
-        if (oos != null)
-            oos.reset();
-    }
-
     public String login(String username, String password) {
         try {
             sendMessage(Methods.LOGIN, new ArrayList<>(), new String[]{username, password});
             Message res = (Message) ois.readObject();
+            System.out.println("Login resp: " + res);
             return res.getmethod().toString();
         }
         catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     public String signup(String username, String password, String account) {
@@ -83,10 +75,11 @@ public class PosilacNaServer {
         Message res = null;
         try {
             res = (Message) ois.readObject();
+            System.out.println("res LOAD ITEMS " + res);
+            return res.getItems();
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            return null;
         }
-        return res.getItems();
     }
 
     public ArrayList<Item> getBuyItems(String username) {
@@ -94,32 +87,46 @@ public class PosilacNaServer {
         Message res = null;
         try {
             res = (Message) ois.readObject();
+            System.out.println("res LOAD BUY ITEMS" + res);
+            return res.getItems();
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            return null;
         }
-        return res.getItems();
     }
 
-    public void deleteItem(int itemId) {
+    public String deleteItem(int itemId) {
         sendMessage(Methods.DELETE_ITEM, null, new String[]{String.valueOf(itemId)});
-        //dodelat return
+        try {
+            Message res = (Message) ois.readObject();
+            System.out.println("res DELETE ITEM " + res);
+            return res.getmethod().toString();
+        } catch (IOException | ClassNotFoundException e) {
+            return null;
+        }
     }
 
-    public String buyItem(String username, int itemId) throws IOException, ClassNotFoundException {
+    public String buyItem(String username, int itemId){
         sendMessage(Methods.BUY_ITEM, null, new String[]{username, String.valueOf(itemId)});
-        Message res = (Message) ois.readObject();
+        Message res = null;
+        try {
+            res = (Message) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            return null;
+        }
         if(res.getmethod() == Methods.ERROR)
-            throw new IOException();
+            return null;
         return res.getData()[0];
     }
 
-    public void addItem(String name, String owner, byte[] img, int price, String description) throws IOException, ClassNotFoundException {
+    public String addItem(String name, String owner, byte[] img, int price, String description) throws IOException, ClassNotFoundException {
         ArrayList<Item> item = new ArrayList<>();
         item.add(new Item(0, owner, name, img, price, description));
         sendMessage(Methods.UPLOAD_ITEM, item, new String[]{owner});
         Message res = (Message) ois.readObject();
+        System.out.println("res UPLOAD_ITEM " + res);
         if(res.getmethod() == Methods.ERROR)
-            throw new IOException();
+            return null;
+        return res.getmethod().toString();
     }
 
     public void close() {

@@ -53,7 +53,7 @@ public class AppServer {
             ObjectInputStream ois = null;
             try {
                 oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                oos.flush();
+                //oos.flush();
                 ois = new ObjectInputStream(clientSocket.getInputStream());
 
                 DelacVeci dv = new DelacVeci(ois, oos, db);

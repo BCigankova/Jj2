@@ -11,8 +11,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,17 +27,6 @@ public class DelacVeci {
         this.db = db;
     }
 
-    public void clearStream() {
-        try {
-//            if (ois != null)
-//                ois.reset();
-            if (oos != null)
-                oos.reset();
-        } catch (IOException e) {
-            System.err.println("Error clearing stream");
-        }
-    }
-
     public void handleRequests() {
         try {
             while (true) {
@@ -46,7 +35,6 @@ public class DelacVeci {
                     break;
                 }
                 processRequest(request);
-                //oos.flush();
             }
         } catch (EOFException e) {
             System.out.println("Client disconnected.");
@@ -62,10 +50,10 @@ public class DelacVeci {
                 break;
             case Methods.LOGIN:
                 login(r.getData()[0], r.getData()[1]);
-                //clearStream();
                 break;
             case Methods.LOAD_ITEMS:
                 loadItems(r.getData()[0]);
+                break;
             case Methods.LOAD_BUY_ITEMS:
                 loadBuyItems(r.getData()[0]);
                 break;
@@ -83,45 +71,71 @@ public class DelacVeci {
         }
     }
     private void addUser(String username, String password, String account) {
-        if(db.addUser(new User(username, password.getBytes(), account)) != null)
+        try {
+            db.addUser(new User(username, password.getBytes(), account));
             sendResponse(Methods.OK, null, null);
-        else
-            sendResponse(Methods.ERROR, null, new String[]{"Username taken"});
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error creating account"});
+        }
     }
 
     private void login(String username, String password) {
-        System.out.println("new string" + Arrays.toString(db.getUserByName(username).getPassword()));
-        System.out.println("psw" + Arrays.toString(password.getBytes()));
-        System.out.println("bool" + password.equals(new String(db.getUserByName(username).getPassword())));
-        if(db.getUserByName(username) != null && new String(db.getUserByName(username).getPassword()).equals(password))
-            sendResponse(Methods.OK, null, null);
-        else
-            sendResponse(Methods.ERROR, null, new String[]{"Bad login"});
+        try {
+            if(db.getUserByName(username) != null && new String(db.getUserByName(username).getPassword()).equals(password))
+                sendResponse(Methods.OK, null, null);
+            else
+                sendResponse(Methods.ERROR, null, new String[]{"Bad login"});
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error loggin in"});
+        }
     }
 
 
     private void loadItems(String username) {
-        List<DBItem> items = db.getItemsForUser(username);
+        List<DBItem> items = null;
+        try {
+            items = db.getItemsForUser(username);
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error loading item"});
+        }
         ArrayList<Item> clientItems = new ArrayList<>();
-        for(DBItem i : items)
+        for(DBItem i : items) {
             clientItems.add(new Item(i.getId(), i.getOwner(), i.getName(), encodeImage(i.getPic_url()), i.getPrice(), i.getDescription()));
+        }
         sendResponse(Methods.OK, clientItems, null);
     }
 
     private void loadBuyItems(String username) {
-        List<DBItem> items = db.getItemsForNotUser(username);
+        List<DBItem> items = null;
+        try {
+            items = db.getItemsForNotUser(username);
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error loading item"});
+        }
         ArrayList<Item> notClientItems = new ArrayList<>();
         for(DBItem i : items) {
-            System.out.println(i.getOwner() + " " + i.getName());
             notClientItems.add(new Item(i.getId(), i.getOwner(), i.getName(), encodeImage(i.getPic_url()), i.getPrice(), i.getDescription()));
         }
         sendResponse(Methods.OK, notClientItems, null);
     }
 
     private void buyItem(String username, String itemId) {
-        DBItem item = db.getItemById(Integer.parseInt(itemId));
-        db.deleteItemById(Integer.parseInt(itemId));
-        sendResponse(Methods.OK, null, new String[]{item.getOwner()});   //hodit alert s cislem uctu od owner
+        DBItem item = null;
+        try {
+            item = db.getItemById(Integer.parseInt(itemId));
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error deleting item"});
+        }
+        try {
+            db.deleteItemById(Integer.parseInt(itemId));
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error deleting item"});
+        }
+        try {
+            sendResponse(Methods.OK, null, new String[]{db.getUserByName(item.getOwner()).getAccount()});   //hodit alert s cislem uctu od owner
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error deleting item"});
+        }
     }
 
     private void uploadItem(String username, ArrayList<Item> item) {
@@ -131,8 +145,14 @@ public class DelacVeci {
             url = saveImg(itemToUpload.getPic());
         } catch (IOException e) {
             sendResponse(Methods.ERROR, null, new String[]{"Error saving image"});
+            e.printStackTrace();
         }
-        db.addItemToUser(itemToUpload.getName(), username, url, itemToUpload.getPrice(), itemToUpload.getDescription());
+        try {
+            db.addItemToUser(itemToUpload.getName(), username, url, itemToUpload.getPrice(), itemToUpload.getDescription());
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error saving image"});
+            e.printStackTrace();
+        }
         sendResponse(Methods.OK, null, null);
     }
 
@@ -151,8 +171,12 @@ public class DelacVeci {
     }
 
     private void deleteItem(String itemId) {
-        db.deleteItemById(Integer.parseInt(itemId));
-        //sendResponse(Methods.OK, null, null);       //hazet sqlexceptiony sem a pak informvat uzivatele pres sendresponse
+        try {
+            db.deleteItemById(Integer.parseInt(itemId));
+        } catch (SQLException e) {
+            sendResponse(Methods.ERROR, null, new String[]{"Error deleting item"});
+        }
+        sendResponse(Methods.OK, null, null);       //hazet sqlexceptiony sem a pak informvat uzivatele pres sendresponse
     }
 
     private byte[] encodeImage(String url) {

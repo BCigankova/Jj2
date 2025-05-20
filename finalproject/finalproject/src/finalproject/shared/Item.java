@@ -3,12 +3,15 @@ package finalproject.shared;
 import java.io.Serializable;
 
 public class Item implements Serializable {
-    private final int id;
+    private int id;
     private String owner;
     private String name;
     private byte[] pic;
     private int price;
     private String description;
+
+    public Item(){
+    }
 
     public Item(int id, String owner, String name, byte[] pic, int price, String description) {
         this.id = id;
@@ -22,6 +25,10 @@ public class Item implements Serializable {
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getOwner() {

@@ -54,10 +54,11 @@ public class MainController implements Initializable {
 
     private void addUserItems() {
         ArrayList<Item> myItems = pns.getMyItems(user);
-        if(myItems != null)
-            System.out.println("items size: " + myItems.size());
-        if(myItems == null)
+        if(myItems == null) {
+            showAlert("Error displaying items, please restart");
             return;
+        }
+        userItemGrid.getChildren().removeAll(userItemGrid.getChildren());
         for (Item item : myItems) {
             VBox itemCard = createItemBox(item, true);
             userItemGrid.getChildren().add(itemCard);
@@ -66,10 +67,11 @@ public class MainController implements Initializable {
 
     private void addItems() {
         ArrayList<Item> items = pns.getBuyItems(user);
-        if(items != null)
-            System.out.println("items size: " + items.size());
-        if(items == null)
+        if(items == null) {
+            showAlert("Error displaying items, please restart");
             return;
+        }
+        itemGrid.getChildren().removeAll(itemGrid.getChildren());
         for (Item item : items) {
             VBox itemCard = createItemBox(item, false);
             itemGrid.getChildren().add(itemCard);
@@ -77,7 +79,6 @@ public class MainController implements Initializable {
     }
 
     private VBox createItemBox(Item item, boolean isUserItem) {
-        System.out.println(isUserItem);
         VBox itemsBox = new VBox(10);
         itemsBox.setStyle("-fx-border-color: #ccc; -fx-padding: 10; -fx-background-color: #f9f9f9; -fx-border-radius: 5;");
 
@@ -108,6 +109,38 @@ public class MainController implements Initializable {
     }
 
     @FXML
+    private void onImportAction(ActionEvent event) {
+        ArrayList<Item> myItems = null;
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Resource File");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Files", "*.xml"));
+        File file = fileChooser.showOpenDialog(new Stage());
+        if(file == null) {
+            return;
+        }
+
+        try (InputStream is = new FileInputStream(file)) {
+            myItems = stAXWR.loadItems(is, user);
+        } catch (IOException | XMLStreamException e) {
+            showAlert("Unable to import from XML");
+            e.printStackTrace();
+        }
+
+        for(Item item : myItems) {
+            String res = null;
+            try {
+                res = pns.addItem(item.getOwner(), item.getName(), item.getPic(), item.getPrice(), item.getDescription());
+            } catch (IOException | ClassNotFoundException e) {
+                showAlert("Error adding new item");
+            }
+            if (res == null)
+                showAlert("Error adding new item");
+        }
+
+        addUserItems();
+    }
+
+    @FXML
     private void onExportAction(ActionEvent event) {
         ArrayList<Item> myItems = pns.getMyItems(user);
         ArrayList<Item> items = pns.getBuyItems(user);
@@ -125,11 +158,9 @@ public class MainController implements Initializable {
                 stAXWR.storeItems(os, myItems, items);
             } catch (IOException | XMLStreamException e) {
                 showAlert("Unable to export to XML");
-                e.printStackTrace();
             }
         } catch (RuntimeException e) {
             showAlert("Unable to export to XML");
-            e.printStackTrace();
         }
     }
 
@@ -141,7 +172,6 @@ public class MainController implements Initializable {
 
             LoginController controller = loader.getController();
             controller.setPns(pns);
-            //controller.getPns().clearStream();
 
             Stage stage = (Stage)((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(parent, 700, 300));
@@ -152,6 +182,7 @@ public class MainController implements Initializable {
         }
     }
     /*
+    Ficurky do dalsiho releasu, zatim nefunkcni :(
     @FXML
     private void onChangeAccountAction(ActionEvent event) {
         pns.changeAccount(user);
@@ -189,27 +220,28 @@ public class MainController implements Initializable {
 
     @FXML
     private void onAddItemAction(ActionEvent event) {
-            try {
-                FXMLLoader loader = new FXMLLoader(MainController.class.getResource("/AddItemWindow.fxml"));
-                Parent root = loader.load();
+        try {
+            FXMLLoader loader = new FXMLLoader(MainController.class.getResource("/AddItemWindow.fxml"));
+            Parent root = loader.load();
 
-                AddItemPopupController controller = loader.getController();
+            AddItemPopupController controller = loader.getController();
 
-                Stage addItemStage = new Stage();
-                addItemStage.setTitle("Add Item");
-                addItemStage.setScene(new Scene(root));
-                addItemStage.initModality(Modality.APPLICATION_MODAL);
-                addItemStage.showAndWait();
+            Stage addItemStage = new Stage();
+            addItemStage.setTitle("Add Item");
+            addItemStage.setScene(new Scene(root));
+            addItemStage.initModality(Modality.APPLICATION_MODAL);
+            addItemStage.showAndWait();
 
 
-                if (controller.getName() != null) {
-                    pns.addItem(controller.getName(), user, controller.getImage(), controller.getPrice(), controller.getDescription());
-                    System.out.println("New item added.");
-                    addUserItems();
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                showAlert("Something went wrong while adding new item");
+            if (controller.getName() != null) {
+                String res = pns.addItem(controller.getName(), user, controller.getImage(), controller.getPrice(), controller.getDescription());
+                addUserItems();
+                if(res == null)
+                    showAlert("Error adding new item");
             }
+        } catch (IOException | ClassNotFoundException e) {
+            showAlert("Something went wrong while adding new item");
+        }
     }
 
     private void showAlert(String msg) {
@@ -218,21 +250,19 @@ public class MainController implements Initializable {
     }
 
     private void deleteItem(Item item) {
-        pns.deleteItem(item.getId());
+        String res = pns.deleteItem(item.getId());
+        if(res == null)
+            showAlert("Error deleting item");
         addUserItems();
     }
 
     private void buyItem(Item item) {
-        String res = null;
-        try {
-            res = pns.buyItem(user, item.getId());
-        } catch (IOException | ClassNotFoundException e) {
-            showAlert("Something went wrong while buying an item");
-        }
-        addUserItems();
-        if(res != null)
+        String res = pns.buyItem(user, item.getId());
+        if (res == null)
+            showAlert("Error buying item");
+        addItems();
+        if (res != null)
             showAlert("Pay here: " + res);
-        //nejaky listener mozna? at se to furt nestahuje
     }
 
     public PosilacNaServer getPns() {

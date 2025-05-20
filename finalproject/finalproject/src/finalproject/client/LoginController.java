@@ -8,7 +8,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
@@ -36,12 +38,10 @@ public class LoginController implements Initializable {
     public void logInAction(ActionEvent event) {
         String response;
         if(username.getText().isEmpty() || password.getText().isEmpty())
-            //alert na empty udaje do funkce
-            return;
+            showAlert("Input both username and password");
         response = pns.login(username.getText(), password.getText());
         if(response != null && !response.equals("OK")) {
-            //alert error signup
-            System.out.println("Login Failed");
+            showAlert("Login unsuccessful unknown error");
             return;
         }
         changeToMainScene(username.getText(), event);
@@ -87,9 +87,14 @@ public class LoginController implements Initializable {
                 connected = true;
 
             } catch (Exception e) {
-                System.out.println("Exception while connecting to server:");
+                showAlert("Error connecting to server");
             }
         }).start();
+    }
+
+    private void showAlert(String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
+        alert.showAndWait();
     }
 
 
