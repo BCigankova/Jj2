@@ -22,10 +22,10 @@ public class AppServer {
 
     public static void main(String[] args) throws IOException, SQLException {       //handlovat errory
         ServerSocket srvSocket = new ServerSocket(4321);
-        while (!isStopServer()) {
+        while (!ServerThread.isStopServer()) {
             System.out.println("Waiting for a client");
             Socket clientSocket = srvSocket.accept();
-            if(isStopServer()){
+            if(ServerThread.isStopServer()){
                 clientSocket.close();
                 break;
             }
@@ -49,30 +49,43 @@ public class AppServer {
         }
 
         public void run() {
-            try (ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
-                 ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
+            ObjectOutputStream oos = null;
+            ObjectInputStream ois = null;
+            try {
+                oos = new ObjectOutputStream(clientSocket.getOutputStream());
+                oos.flush();
+                ois = new ObjectInputStream(clientSocket.getInputStream());
+
                 DelacVeci dv = new DelacVeci(ois, oos, db);
                 dv.handleRequests();
             } catch (IOException e) {
-                throw new RuntimeException(e);
-                //co ted?
+                System.err.println("Error handling client: " + e.getMessage());
             } finally {
+                try {
+                    if (ois != null) {
+                        ois.close();
+                    }
+                    if (oos != null) {
+                        oos.close();
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error closing streams: " + e.getMessage());
+                }
                 try {
                     clientSocket.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.err.println("Error closing socket: " + e.getMessage());
                 }
             }
         }
+
+
+        private static synchronized void setStopServer(boolean value) {
+            stopServer = value;
+        }
+
+        private static synchronized boolean isStopServer() {
+            return stopServer;
+        }
     }
-
-
-    private static synchronized void setStopServer(boolean value) {
-        stopServer = value;
-    }
-
-    private static synchronized boolean isStopServer() {
-        return stopServer;
-    }
-
 }

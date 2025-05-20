@@ -21,6 +21,7 @@ public class Database implements AutoCloseable {
     //items
     private PreparedStatement getItemById;
     private PreparedStatement getItemsForUser;
+    private PreparedStatement getItemsForNotUser;
     private PreparedStatement addItemToUser;
     private PreparedStatement deleteItemById;
 
@@ -34,6 +35,7 @@ public class Database implements AutoCloseable {
             //items
             getItemById = con.prepareStatement("SELECT * FROM items WHERE id = ?");
             getItemsForUser = con.prepareStatement("SELECT * FROM items WHERE owner = ?");
+            getItemsForNotUser = con.prepareStatement("SELECT * FROM items WHERE owner != ?");
             addItemToUser = con.prepareStatement("INSERT INTO items (name, owner, pic_url, price, description) VALUES (?, ?, ?, ?, ?)");
             deleteItemById = con.prepareStatement("DELETE FROM items WHERE id = ?");
         } catch (SQLException e) {
@@ -46,7 +48,11 @@ public class Database implements AutoCloseable {
         try {
             getUserByName.setString(1, name);
             try (ResultSet results = getUserByName.executeQuery()) {
-                user = new User(results.getString(1), results.getBytes(2), results.getString(3));
+                if(results.next()) {
+                    user = new User(results.getString(1), results.getBytes(2), results.getString(3));
+                    System.out.println(user.toString());
+                    return user;
+                }
             } catch (SQLException e) {
                 throw new RuntimeException("User doesnt exist", e);
             }
@@ -123,6 +129,23 @@ public class Database implements AutoCloseable {
         return DBItems;
     }
 
+    public List<DBItem> getItemsForNotUser(String username) {
+        List<DBItem> DBItems = new ArrayList<>();
+        try {
+            getItemsForNotUser.setString(1, username);
+            try (ResultSet rs = getItemsForNotUser.executeQuery()) {
+                while (rs.next()) {
+                    DBItems.add(new DBItem(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getString(6)));
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException("unable to get items", e);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("unable to get items", e);
+        }
+        return DBItems;
+    }
+
     public void addItemToUser(String name, String username, String pic_url, int price, String description) {
         try {
             addItemToUser.setString(1, name);
@@ -130,7 +153,7 @@ public class Database implements AutoCloseable {
             addItemToUser.setString(3, pic_url);
             addItemToUser.setInt(4, price);
             addItemToUser.setString(5, description);
-            addItemToUser.executeQuery();
+            addItemToUser.executeUpdate();
         }
         catch (SQLException e) {
             throw new RuntimeException("unable to add item to user", e);

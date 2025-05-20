@@ -2,6 +2,7 @@ package finalproject.shared;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Message implements Serializable {
     private Methods method;
@@ -36,5 +37,9 @@ public class Message implements Serializable {
 
     public void setData(String[] data) {
         this.data = data;
+    }
+
+    public String toString() {
+        return method.toString() + " " + (items == null ? "null" : items.toString()) + " " + Arrays.toString(data);
     }
 }

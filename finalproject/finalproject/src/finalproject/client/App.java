@@ -17,13 +17,15 @@ public class App extends Application {
         pns = new PosilacNaServer("127.0.0.1", 4321);
 
         FXMLLoader loader = new FXMLLoader(App.class.getResource("/LoginWindow.fxml"));
+        Parent root = loader.load();
+
         LoginController controller = loader.getController();
         controller.setPrimaryStage(primaryStage);
         controller.setPns(pns);
-        Parent root = loader.load();
+        controller.connectToServer();
 
         primaryStage.setTitle("App");
-        primaryStage.setScene(new Scene(root, 1000, 1000));
+        primaryStage.setScene(new Scene(root, 700, 300));
         primaryStage.show();
     }
 
@@ -33,14 +35,24 @@ public class App extends Application {
 
     /*
     TODO:   xml
-                dodelat metody pns pro itemy, pak dv a db statementy nove
+            loadovani hned po pridani
+            load myItems vs buyItems
+            delete itemy jen jeden xd
+            dodelat delete a buy v MainController
+            thread na fxml gui front/background tasks
             password hashing
-            logika client
-            vykreslovani client
             vsude pohandlovat exceptiony (SQLWrapper + aby to vyhodilo nejaky alert a nespadlo)
-            pridat account policko u signupu a moznost zmenit account a password v db a obecne
+            moznost zmenit account a password v db a obecne
+            listener na delete/buy?
      */
 
+
+/*     ! CHYBOVY ALERT !
+private void showAlert(String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
+        alert.showAndWait();
+    }
+ */
 
 /*
 Uzivatel zapne apku

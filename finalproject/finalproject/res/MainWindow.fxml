@@ -5,28 +5,31 @@
 
 <BorderPane fx:id="root" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="finalproject.client.MainController">
     <top>
-        <HBox spacing="10" padding="10" alignment="CENTER_RIGHT" style="-fx-background-color: #f0f0f0;">
-            <Label fx:id="username" text="User: <username>" />
+        <HBox spacing="10.0" alignment="CENTER_RIGHT" style="-fx-background-color: #f0f0f0; -fx-padding: 10 10 10 10;">
+            <Label fx:id="username" text="User: " />
             <Button text="Log Out" onAction="#onLogoutAction"/>
+            <!--  <Button text="Change account" onAction="#onChangeAccountAction"/>
+            <Button text="Change password" onAction="#onChangePasswordAction"/> <!-->
         </HBox>
     </top>
 
     <center>
-        <VBox spacing="20" padding="15">
-            <VBox fx:id="userItemsSection" spacing="10">
+        <VBox spacing="20.0" style="-fx-padding: 15 15 15 15;">
+            <VBox fx:id="userItemsSection" spacing="10.0">
                 <Label text="Your Items" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Button text="Add item" onAction="#onAddItemAction"/>
+                <Button text="Export to XML" onAction="#onExportAction"/>
                 <ScrollPane fitToWidth="true">
-                    <TilePane fx:id="userItemGrid" padding="15" hgap="20" vgap="20" prefColumns="3"/>
+                    <TilePane fx:id="userItemGrid" hgap="20.0" vgap="20.0" prefColumns="3" style="-fx-padding: 15 15 15 15;"/>
                 </ScrollPane>
             </VBox>
 
-            <VBox fx:id="itemsSection" spacing="10">
+            <VBox fx:id="itemsSection" spacing="10.0">
                 <Label text="Items from Other Users" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
                 <ScrollPane fitToWidth="true">
-                    <TilePane fx:id="itemGrid" padding="15" hgap="20" vgap="20" prefColumns="3"/>
+                    <TilePane fx:id="itemGrid" hgap="20.0" vgap="20.0" prefColumns="3" style="-fx-padding: 15 15 15 15;"/>
                 </ScrollPane>
             </VBox>
         </VBox>
     </center>
 </BorderPane>
-

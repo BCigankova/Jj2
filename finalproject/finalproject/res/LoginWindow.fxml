@@ -14,6 +14,7 @@
             <Button text="Sign Up" onAction="#signUpAction"/>
             <TextField fx:id="username" promptText="Username" />
             <TextField fx:id="password" promptText="Password" />
+            <TextField fx:id="account" promptText="Account" />
         </HBox>
     </top>
     <center>

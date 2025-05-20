@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml/1" fx:controller="finalproject.client.ChangeStuffPopupController">
+    <Label text="Add New Item" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+    <TextField fx:id="text" promptText="Insert new one here"/>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Cancel" onAction="#onCancelAction"/>
+        <Button text="Submit" onAction="#onSubmitAction"/>
+    </HBox>
+</VBox>
+
